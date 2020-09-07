@@ -119,7 +119,7 @@ Module.register("currentindoorweather", {
 	addExtraInfoWeather: function (wrapper) {
 		var small = document.createElement("div");
 		small.className = "normal medium";
-
+/*
 		var windIcon = document.createElement("span");
 		windIcon.className = "wi wi-strong-wind dimmed";
 		small.appendChild(windIcon);
@@ -142,7 +142,7 @@ Module.register("currentindoorweather", {
 		var spacer = document.createElement("span");
 		spacer.innerHTML = "&nbsp;";
 		small.appendChild(spacer);
-
+*/
 		if (this.config.showHumidity) {
 			var humidity = document.createElement("span");
 			humidity.innerHTML = this.humidity;
