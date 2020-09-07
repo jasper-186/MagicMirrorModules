@@ -1,10 +1,11 @@
 /* Magic Mirror
- * Module: CurrentWeather
+ * Module: CurrentIndoorWeather
  *
- * By Michael Teeuw https://michaelteeuw.nl
+ * Originally By Michael Teeuw https://michaelteeuw.nl
+ * Modified By Joe Echtenkamp, for use with Indoor weather server
  * MIT Licensed.
  */
-Module.register("currentweather", {
+Module.register("currentindoorweather", {
 	// Default module config.
 	defaults: {
 		location: false,
@@ -16,24 +17,24 @@ Module.register("currentweather", {
 		timeFormat: config.timeFormat,
 		showPeriod: true,
 		showPeriodUpper: false,
-		showWindDirection: true,
+		showWindDirection: false,
 		showWindDirectionAsArrow: false,
 		useBeaufort: true,
 		useKMPHwind: false,
 		lang: config.language,
 		decimalSymbol: ".",
-		showHumidity: false,
-		showSun: true,
+		showHumidity: true,
+		showSun: false,
 		degreeLabel: false,
 		showIndoorTemperature: false,
 		showIndoorHumidity: false,
-		showFeelsLike: true,
+		showFeelsLike: false,
 
 		initialLoadDelay: 0, // 0 seconds delay
 		retryDelay: 2500,
 
 		apiVersion: "2.5",
-		apiBase: "https://api.openweathermap.org/data/",
+		apiBase: "http://192.168.0.30/",
 		weatherEndpoint: "weather",
 
 		appendLocationNameToHeader: true,
@@ -79,7 +80,7 @@ Module.register("currentweather", {
 
 	// Define required scripts.
 	getStyles: function () {
-		return ["weather-icons.css", "currentweather.css"];
+		return ["weather-icons.css", "currentindoorweather.css"];
 	},
 
 	// Define required translations.
@@ -320,7 +321,7 @@ Module.register("currentweather", {
 			return;
 		}
 
-		var url = this.config.apiBase + this.config.apiVersion + "/" + this.config.weatherEndpoint + this.getParams();
+		var url = this.config.apiBase + "all/";
 		var self = this;
 		var retry = true;
 
@@ -380,118 +381,26 @@ Module.register("currentweather", {
 	 * argument data object - Weather information received form openweather.org.
 	 */
 	processWeather: function (data) {
-		if (!data || !data.main || typeof data.main.temp === "undefined") {
+		if (!data || !data.temperature || typeof data.temperature === "undefined") {
 			// Did not receive usable new data.
 			// Maybe this needs a better check?
 			return;
 		}
 
-		this.humidity = parseFloat(data.main.humidity);
-		this.temperature = this.roundValue(data.main.temp);
-		this.fetchedLocationName = data.name;
-		this.feelsLike = 0;
-
-		if (this.config.useBeaufort) {
-			this.windSpeed = this.ms2Beaufort(this.roundValue(data.wind.speed));
-		} else if (this.config.useKMPHwind) {
-			this.windSpeed = parseFloat((data.wind.speed * 60 * 60) / 1000).toFixed(0);
-		} else {
-			this.windSpeed = parseFloat(data.wind.speed).toFixed(0);
-		}
-
-		// ONLY WORKS IF TEMP IN C //
-		var windInMph = parseFloat(data.wind.speed * 2.23694);
-
-		var tempInF = 0;
+		this.humidity = parseFloat(data.humidity);
+		this.fetchedLocationName = "Indoors";
+		
 		switch (this.config.units) {
 			case "metric":
-				tempInF = 1.8 * this.temperature + 32;
+				this.temperature = this.roundValue(data.temperature);
 				break;
 			case "imperial":
-				tempInF = this.temperature;
+				this.temperature = 1.8 * (this.roundValue(data.temperature) + 32;
 				break;
 			case "default":
-				tempInF = 1.8 * (this.temperature - 273.15) + 32;
+				this.temperature = this.roundValue(data.temperature);
 				break;
 		}
-
-		if (windInMph > 3 && tempInF < 50) {
-			// windchill
-			var windChillInF = Math.round(35.74 + 0.6215 * tempInF - 35.75 * Math.pow(windInMph, 0.16) + 0.4275 * tempInF * Math.pow(windInMph, 0.16));
-			var windChillInC = (windChillInF - 32) * (5 / 9);
-			// this.feelsLike = windChillInC.toFixed(0);
-
-			switch (this.config.units) {
-				case "metric":
-					this.feelsLike = windChillInC.toFixed(0);
-					break;
-				case "imperial":
-					this.feelsLike = windChillInF.toFixed(0);
-					break;
-				case "default":
-					this.feelsLike = (windChillInC + 273.15).toFixed(0);
-					break;
-			}
-		} else if (tempInF > 80 && this.humidity > 40) {
-			// heat index
-			var Hindex =
-				-42.379 +
-				2.04901523 * tempInF +
-				10.14333127 * this.humidity -
-				0.22475541 * tempInF * this.humidity -
-				6.83783 * Math.pow(10, -3) * tempInF * tempInF -
-				5.481717 * Math.pow(10, -2) * this.humidity * this.humidity +
-				1.22874 * Math.pow(10, -3) * tempInF * tempInF * this.humidity +
-				8.5282 * Math.pow(10, -4) * tempInF * this.humidity * this.humidity -
-				1.99 * Math.pow(10, -6) * tempInF * tempInF * this.humidity * this.humidity;
-
-			switch (this.config.units) {
-				case "metric":
-					this.feelsLike = parseFloat((Hindex - 32) / 1.8).toFixed(0);
-					break;
-				case "imperial":
-					this.feelsLike = Hindex.toFixed(0);
-					break;
-				case "default":
-					var tc = parseFloat((Hindex - 32) / 1.8) + 273.15;
-					this.feelsLike = tc.toFixed(0);
-					break;
-			}
-		} else {
-			this.feelsLike = parseFloat(this.temperature).toFixed(0);
-		}
-
-		this.windDirection = this.deg2Cardinal(data.wind.deg);
-		this.windDeg = data.wind.deg;
-		this.weatherType = this.config.iconTable[data.weather[0].icon];
-
-		var now = new Date();
-		var sunrise = new Date(data.sys.sunrise * 1000);
-		var sunset = new Date(data.sys.sunset * 1000);
-
-		// The moment().format('h') method has a bug on the Raspberry Pi.
-		// So we need to generate the timestring manually.
-		// See issue: https://github.com/MichMich/MagicMirror/issues/181
-		var sunriseSunsetDateObject = sunrise < now && sunset > now ? sunset : sunrise;
-		var timeString = moment(sunriseSunsetDateObject).format("HH:mm");
-		if (this.config.timeFormat !== 24) {
-			//var hours = sunriseSunsetDateObject.getHours() % 12 || 12;
-			if (this.config.showPeriod) {
-				if (this.config.showPeriodUpper) {
-					//timeString = hours + moment(sunriseSunsetDateObject).format(':mm A');
-					timeString = moment(sunriseSunsetDateObject).format("h:mm A");
-				} else {
-					//timeString = hours + moment(sunriseSunsetDateObject).format(':mm a');
-					timeString = moment(sunriseSunsetDateObject).format("h:mm a");
-				}
-			} else {
-				//timeString = hours + moment(sunriseSunsetDateObject).format(':mm');
-				timeString = moment(sunriseSunsetDateObject).format("h:mm");
-			}
-		}
-
-		this.sunriseSunsetTime = timeString;
-		this.sunriseSunsetIcon = sunrise < now && sunset > now ? "wi-sunset" : "wi-sunrise";
 
 		this.show(this.config.animationSpeed, { lockString: this.identifier });
 		this.loaded = true;
