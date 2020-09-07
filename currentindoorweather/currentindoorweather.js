@@ -219,7 +219,7 @@ Module.register("currentindoorweather", {
 
 			var temperature = document.createElement("span");
 			temperature.className = "bright";
-			temperature.innerHTML = " " + this.temperature.replace(".", this.config.decimalSymbol) + degreeLabel;
+			temperature.innerHTML = " " + this.temperature.toPrecision(4).replace(".", this.config.decimalSymbol) + degreeLabel;
 			large.appendChild(temperature);
 		}
 
