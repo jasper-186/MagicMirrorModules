@@ -301,14 +301,6 @@ Module.register("currentindoorweather", {
 				}
 			}
 		}
-		if (notification === "INDOOR_TEMPERATURE") {
-			this.indoorTemperature = this.roundValue(payload);
-			this.updateDom(this.config.animationSpeed);
-		}
-		if (notification === "INDOOR_HUMIDITY") {
-			this.indoorHumidity = this.roundValue(payload);
-			this.updateDom(this.config.animationSpeed);
-		}
 	},
 
 	/* updateWeather(compliments)
@@ -405,7 +397,7 @@ Module.register("currentindoorweather", {
 		this.show(this.config.animationSpeed, { lockString: this.identifier });
 		this.loaded = true;
 		this.updateDom(this.config.animationSpeed);
-		this.sendNotification("CURRENTWEATHER_DATA", { data: data });
+		this.sendNotification("CURRENTINDOORWEATHER_DATA", { data: data });
 	},
 
 	/* scheduleUpdate()
