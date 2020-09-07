@@ -6,7 +6,7 @@ const exec = require('child_process').exec;
 const http = require('http');
 module.exports = NodeHelper.create({
     start: function () {
-        console.log('Indoor weather helper started ...');
+        console.log('Current Indoor Weather helper started ...');
     },
 
     // Subclass socketNotificationReceived received.

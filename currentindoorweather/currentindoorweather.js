@@ -5,6 +5,8 @@
  * Modified By Joe Echtenkamp, for use with Indoor weather server
  * MIT Licensed.
  */
+ 'use strict';
+
 Module.register("currentindoorweather", {
 	// Default module config.
 	defaults: {
@@ -94,7 +96,7 @@ Module.register("currentindoorweather", {
 	// Define start sequence.
 	start: function () {
 		Log.info("Starting module: " + this.name);
-
+		console.log("Starting module: " + this.name);
 		// Set locale.
 		moment.locale(config.language);
 
