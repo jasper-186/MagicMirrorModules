@@ -389,7 +389,7 @@ Module.register("currentindoorweather", {
 				this.temperature = this.roundValue(data.temperature);
 				break;
 			case "imperial":
-				this.temperature = 1.8 * (this.roundValue(data.temperature) + 32;
+				this.temperature = 1.8 * (this.roundValue(data.temperature)) + 32;
 				break;
 			case "default":
 				this.temperature = this.roundValue(data.temperature);
