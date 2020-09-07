@@ -310,11 +310,6 @@ Module.register("currentindoorweather", {
 	 * Calls processWeather on succesfull response.
 	 */
 	updateWeather: function () {
-		if (this.config.appid === "") {
-			Log.error("CurrentWeather: APPID not set!");
-			return;
-		}
-
 		var url = this.config.apiBase + "all/";
 		var self = this;
 		var retry = true;
