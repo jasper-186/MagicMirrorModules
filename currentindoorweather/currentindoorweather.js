@@ -73,7 +73,7 @@ Module.register("currentindoorweather", {
 	firstEvent: false,
 
 	// create a variable to hold the location name based on the API result.
-	fetchedLocationName: "",
+	fetchedLocationName: "Indoors",
 
 	// Define required scripts.
 	getScripts: function () {
@@ -264,15 +264,7 @@ Module.register("currentindoorweather", {
 
 	// Override getHeader method.
 	getHeader: function () {
-		if (this.config.appendLocationNameToHeader && this.data.header !== undefined) {
-			return this.data.header + " " + this.fetchedLocationName;
-		}
-
-		if (this.config.useLocationAsHeader && this.config.location !== false) {
-			return this.config.location;
-		}
-
-		return this.data.header;
+		return this.fetchedLocationName;
 	},
 
 	// Override notification handler.
